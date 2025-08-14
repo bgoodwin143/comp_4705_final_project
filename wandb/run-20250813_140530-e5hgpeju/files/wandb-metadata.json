@@ -1,0 +1,36 @@
+{
+  "os":  "macOS-15.6-arm64-arm-64bit",
+  "python":  "CPython 3.12.8",
+  "startedAt":  "2025-08-13T20:05:30.287811Z",
+  "program":  "/Users/benjamingoodwin/ml_ops_final/comp_4705_final_project/train.py",
+  "codePath":  "train.py",
+  "codePathLocal":  "train.py",
+  "git":  {
+    "remote":  "https://github.com/bgoodwin143/comp_4705_final_project.git"
+  },
+  "email":  "bensharn@gmail.com",
+  "root":  "/Users/benjamingoodwin/ml_ops_final/comp_4705_final_project",
+  "host":  "Benjamins-MacBook-Pro-5.local",
+  "executable":  "/Users/benjamingoodwin/ml_ops_final/comp_4705_final_project/venv/bin/python3",
+  "cpu_count":  14,
+  "cpu_count_logical":  14,
+  "disk":  {
+    "/":  {
+      "total":  "994662584320",
+      "used":  "483664674816"
+    }
+  },
+  "memory":  {
+    "total":  "25769803776"
+  },
+  "apple":  {
+    "name":  "Apple M4 Pro",
+    "ecpuCores":  4,
+    "pcpuCores":  10,
+    "gpuCores":  20,
+    "memoryGb":  24,
+    "swapTotalBytes":  "1073741824",
+    "ramTotalBytes":  "25769803776"
+  },
+  "writerId":  "0hfyf269uhda8pblmyr9my4w4awncz1t"
+}

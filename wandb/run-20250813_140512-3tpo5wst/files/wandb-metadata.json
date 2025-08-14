@@ -1,0 +1,16 @@
+{
+  "os":  "macOS-15.6-arm64-arm-64bit",
+  "python":  "CPython 3.12.8",
+  "startedAt":  "2025-08-13T20:05:12.386543Z",
+  "program":  "/Users/benjamingoodwin/ml_ops_final/comp_4705_final_project/log_data.py",
+  "codePath":  "log_data.py",
+  "codePathLocal":  "log_data.py",
+  "git":  {
+    "remote":  "https://github.com/bgoodwin143/comp_4705_final_project.git"
+  },
+  "email":  "bensharn@gmail.com",
+  "root":  "/Users/benjamingoodwin/ml_ops_final/comp_4705_final_project",
+  "host":  "Benjamins-MacBook-Pro-5.local",
+  "executable":  "/Users/benjamingoodwin/ml_ops_final/comp_4705_final_project/venv/bin/python3",
+  "writerId":  "avqy8zm6ozt6vk0l0k1a35bupx5fixqe"
+}

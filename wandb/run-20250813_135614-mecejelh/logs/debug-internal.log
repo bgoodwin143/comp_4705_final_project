@@ -1,0 +1,12 @@
+{"time":"2025-08-13T13:56:14.672713-06:00","level":"INFO","msg":"stream: starting","core version":"0.21.1"}
+{"time":"2025-08-13T13:56:14.877366-06:00","level":"INFO","msg":"stream: created new stream","id":"mecejelh"}
+{"time":"2025-08-13T13:56:14.877407-06:00","level":"INFO","msg":"stream: started","id":"mecejelh"}
+{"time":"2025-08-13T13:56:14.877415-06:00","level":"INFO","msg":"writer: started","stream_id":"mecejelh"}
+{"time":"2025-08-13T13:56:14.877412-06:00","level":"INFO","msg":"handler: started","stream_id":"mecejelh"}
+{"time":"2025-08-13T13:56:14.877425-06:00","level":"INFO","msg":"sender: started","stream_id":"mecejelh"}
+{"time":"2025-08-13T13:56:17.291356-06:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading artifact toxic-comment-pipeline","runtime_seconds":1.113656209}],"total_operations":1}}
+{"time":"2025-08-13T13:56:17.580674-06:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-08-13T13:56:17.80369-06:00","level":"INFO","msg":"stream: closing","id":"mecejelh"}
+{"time":"2025-08-13T13:56:17.803711-06:00","level":"INFO","msg":"handler: closed","stream_id":"mecejelh"}
+{"time":"2025-08-13T13:56:17.803916-06:00","level":"INFO","msg":"sender: closed","stream_id":"mecejelh"}
+{"time":"2025-08-13T13:56:17.803934-06:00","level":"INFO","msg":"stream: closed","id":"mecejelh"}

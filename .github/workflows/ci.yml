@@ -1,0 +1,39 @@
+name: CI Pipeline for MLOps Final Project
+
+# Trigger the workflow on pull requests to the main branch
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Use a stable Python version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest
+          # Install all dependencies from all requirements files
+          pip install -r api/requirements.txt
+          pip install -r frontend/requirements.txt
+          pip install -r monitoring/requirements.txt
+          pip install -r requirements.txt # For the training script deps
+
+      - name: Lint with ruff
+        run: |
+          ruff check .
+
+      - name: Test with pytest
+        # The tests are located in the 'api' directory
+        run: |
+          pytest api/

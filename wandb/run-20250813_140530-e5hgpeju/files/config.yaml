@@ -1,0 +1,68 @@
+_wandb:
+    value:
+        cli_version: 0.21.1
+        e:
+            0hfyf269uhda8pblmyr9my4w4awncz1t:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 20
+                    memoryGb: 24
+                    name: Apple M4 Pro
+                    pcpuCores: 10
+                    ramTotalBytes: "25769803776"
+                    swapTotalBytes: "1073741824"
+                codePath: train.py
+                codePathLocal: train.py
+                cpu_count: 14
+                cpu_count_logical: 14
+                disk:
+                    /:
+                        total: "994662584320"
+                        used: "483664674816"
+                email: bensharn@gmail.com
+                executable: /Users/benjamingoodwin/ml_ops_final/comp_4705_final_project/venv/bin/python3
+                git:
+                    remote: https://github.com/bgoodwin143/comp_4705_final_project.git
+                host: Benjamins-MacBook-Pro-5.local
+                memory:
+                    total: "25769803776"
+                os: macOS-15.6-arm64-arm-64bit
+                program: /Users/benjamingoodwin/ml_ops_final/comp_4705_final_project/train.py
+                python: CPython 3.12.8
+                root: /Users/benjamingoodwin/ml_ops_final/comp_4705_final_project
+                startedAt: "2025-08-13T20:05:30.287811Z"
+                writerId: 0hfyf269uhda8pblmyr9my4w4awncz1t
+        m: []
+        python_version: 3.12.8
+        t:
+            "1":
+                - 5
+                - 53
+            "2":
+                - 5
+                - 53
+            "3":
+                - 2
+                - 16
+            "4": 3.12.8
+            "5": 0.21.1
+            "12": 0.21.1
+            "13": darwin-arm64
+C:
+    value: 1
+dataset_artifact:
+    value: raw_toxic_comments_dataset:latest
+dataset_sample_size:
+    value: 15000
+max_features:
+    value: 5000
+model:
+    value: LogisticRegression
+ngram_range:
+    value: (1, 2)
+pipeline_version:
+    value: 1
+solver:
+    value: liblinear
+vectorizer:
+    value: TfidfVectorizer
