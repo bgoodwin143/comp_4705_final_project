@@ -1,0 +1,19 @@
+# Python virtual environment
+venv/
+.venv/
+
+# Caches and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# W&B local files
+wandb/
+
+# Local data files (already versioned with W&B artifacts)
+train.csv
+toxic_comment_pipeline.pkl
+
+# System files
+.DS_Store
