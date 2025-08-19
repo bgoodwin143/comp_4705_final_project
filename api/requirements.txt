@@ -8,3 +8,4 @@ pandas
 pytest  
 requests 
 moto[dynamodb] 
+httpx
