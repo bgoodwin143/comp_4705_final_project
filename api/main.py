@@ -22,7 +22,7 @@ app = FastAPI(title="Toxic Comment Classification API", version="1.0.0")
 # It ensures the model is loaded and ready before accepting requests.
 
 # Define the W&B artifact path. Using ':production' is best practice.
-MODEL_ARTIFACT_PATH = "bensharn-university-of-denver-org/model-toxic-comment-classifier/toxic-comment-pipeline:production"
+MODEL_ARTIFACT_PATH = "bensharn-university-of-denver/Toxic-Comment-Classification-Final/toxic-comment-pipeline:production"
 pipeline = None
 
 @app.on_event("startup")
