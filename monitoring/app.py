@@ -22,7 +22,7 @@ def load_data_from_dynamodb():
     Scans the entire DynamoDB table and returns the data as a Pandas DataFrame.
     """
     try:
-        dynamodb = boto3.resource('dynamodb')
+        dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
         table = dynamodb.Table(DYNAMODB_TABLE_NAME)
         # Scan is okay for smaller tables, but for very large tables,
         # you'd want a more efficient query strategy.
