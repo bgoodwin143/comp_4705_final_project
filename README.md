@@ -140,4 +140,4 @@ This section provides a complete guide for deploying the entire application stac
 *   **Monitoring Dashboard**: `http://3.14.149.228:8502/`
 
 ## Project Links
-*   **W&B Project Dashboard**: [\[Link to your W&B project URL\]](https://wandb.ai/bensharn-university-of-denver/Toxic-Comment-Classification-Final?nw=nwuserbensharn)
+*   **W&B Project Dashboard**: (https://wandb.ai/bensharn-university-of-denver/Toxic-Comment-Classification-Final?nw=nwuserbensharn)
