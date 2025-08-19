@@ -20,7 +20,7 @@ with st.form("prediction_form"):
     text_input = st.text_area(
         "Enter your comment here:",
         "This is an example of a perfectly nice and respectful comment.",
-        height=150
+        height=150,
     )
     submit_button = st.form_submit_button("Classify Comment")
 
@@ -42,7 +42,9 @@ if submit_button and text_input:
 
                 # Display the result
                 st.success(f"Classification Result: **{classification.upper()}**")
-                st.info(f"Prediction ID: `{prediction_id}` (This has been logged for monitoring)")
+                st.info(
+                    f"Prediction ID: `{prediction_id}` (This has been logged for monitoring)"
+                )
             else:
                 # Handle API errors
                 st.error(f"Error: API returned status code {response.status_code}")

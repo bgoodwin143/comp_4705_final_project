@@ -25,6 +25,7 @@ app = FastAPI(title="Toxic Comment Classification API", version="1.0.0")
 MODEL_ARTIFACT_PATH = "bensharn-university-of-denver/Toxic-Comment-Classification-Final/toxic-comment-pipeline:production"
 pipeline = None
 
+
 @app.on_event("startup")
 def load_production_model():
     """
@@ -36,7 +37,9 @@ def load_production_model():
     logger.info(f"Attempting to download model artifact: {MODEL_ARTIFACT_PATH}")
     try:
         # Initialize a W&B run to interact with artifacts
-        run = wandb.init(project="Toxic-Comment-Classification-Final", job_type="inference")
+        run = wandb.init(
+            project="Toxic-Comment-Classification-Final", job_type="inference"
+        )
         # Use the artifact from the registry
         artifact = run.use_artifact(MODEL_ARTIFACT_PATH, type="model")
         # Download the artifact contents to a local directory
@@ -62,24 +65,26 @@ DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME", "prediction_logs")
 try:
     # Boto3 will automatically use the IAM role credentials
     # when this code is running on an EC2 instance with the role attached.
-    dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+    dynamodb = boto3.resource("dynamodb", region_name="us-east-2")
     table = dynamodb.Table(DYNAMODB_TABLE_NAME)
     # Perform a test operation to confirm connection
     table.load()
     logger.info(f"Successfully connected to DynamoDB table: {DYNAMODB_TABLE_NAME}")
 except ClientError as e:
     logger.error(f"Failed to connect to DynamoDB: {e.response['Error']['Message']}")
-    table = None # Set table to None if connection fails
+    table = None  # Set table to None if connection fails
+
 
 # --- API Data Models (Pydantic) ---
 # Defines the expected request JSON structure
 class PredictionRequest(BaseModel):
     text: str
 
+
 # Defines the response JSON structure
 class PredictionResponse(BaseModel):
     prediction_id: str
-    classification: str # "toxic" or "not_toxic"
+    classification: str  # "toxic" or "not_toxic"
 
 
 # --- API Endpoints ---
@@ -92,7 +97,9 @@ def health_check():
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Model not loaded or unavailable.")
     if table is None:
-        raise HTTPException(status_code=503, detail="Database not connected or unavailable.")
+        raise HTTPException(
+            status_code=503, detail="Database not connected or unavailable."
+        )
     return {"status": "ok", "model_ready": True, "database_ready": True}
 
 
@@ -103,7 +110,10 @@ def predict(request: PredictionRequest):
     Each prediction is logged with a unique ID to DynamoDB.
     """
     if pipeline is None or table is None:
-        raise HTTPException(status_code=503, detail="Service is not fully operational. Check health endpoint.")
+        raise HTTPException(
+            status_code=503,
+            detail="Service is not fully operational. Check health endpoint.",
+        )
 
     # 1. Generate a unique ID for this prediction event
     prediction_id = str(uuid.uuid4())
@@ -120,8 +130,8 @@ def predict(request: PredictionRequest):
         "text_input": request.text,
         "classification": classification_result,
         "model_artifact_used": MODEL_ARTIFACT_PATH,
-        "timestamp": pd.Timestamp.now().isoformat(), # Use ISO 8601 format
-        "user_feedback": "N/A" # Default feedback status
+        "timestamp": pd.Timestamp.now().isoformat(),  # Use ISO 8601 format
+        "user_feedback": "N/A",  # Default feedback status
     }
 
     # 4. Write the log item to the DynamoDB table
@@ -133,4 +143,6 @@ def predict(request: PredictionRequest):
         logger.error(f"DynamoDB put_item failed: {e.response['Error']['Message']}")
 
     # 5. Return the result to the user
-    return PredictionResponse(prediction_id=prediction_id, classification=classification_result)
+    return PredictionResponse(
+        prediction_id=prediction_id, classification=classification_result
+    )

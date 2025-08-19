@@ -9,7 +9,7 @@ run = wandb.init(project="Toxic-Comment-Classification-Final", job_type="upload_
 raw_data_artifact = wandb.Artifact(
     "raw_toxic_comments_dataset",
     type="dataset",
-    description="The raw training data (train.csv) from the Jigsaw Kaggle competition."
+    description="The raw training data (train.csv) from the Jigsaw Kaggle competition.",
 )
 
 # 3. Add the file to the artifact

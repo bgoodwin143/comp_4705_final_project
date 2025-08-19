@@ -9,6 +9,7 @@ import joblib
 import os
 import ast  # Used to safely evaluate string representations of Python literals
 
+
 def train():
     """
     This function trains a model pipeline, logs metrics and parameters to W&B,
@@ -50,29 +51,41 @@ def train():
         df = pd.read_csv(data_path).sample(config.dataset_sample_size, random_state=42)
         print("Data loaded and sampled successfully.")
     except Exception as e:
-        wandb.alert(title="Failed to load data artifact", text=f"Could not load artifact {config.dataset_artifact}. Error: {e}")
+        wandb.alert(
+            title="Failed to load data artifact",
+            text=f"Could not load artifact {config.dataset_artifact}. Error: {e}",
+        )
         print(f"Error loading data artifact: {e}")
-        return # Exit if data can't be loaded
+        return  # Exit if data can't be loaded
 
     # Preprocessing
-    df["toxic"] = (df[["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]].sum(axis=1) > 0).astype(int)
-    X_train, X_test, y_train, y_test = train_test_split(df["comment_text"], df["toxic"], test_size=0.2, random_state=42)
+    df["toxic"] = (
+        df[
+            ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]
+        ].sum(axis=1)
+        > 0
+    ).astype(int)
+    X_train, X_test, y_train, y_test = train_test_split(
+        df["comment_text"], df["toxic"], test_size=0.2, random_state=42
+    )
     print("Data preprocessed and split.")
 
     # --- 3. Create and Train the Scikit-learn Pipeline ---
     # The pipeline encapsulates the vectorizer and the model.
     print("Building and training pipeline...")
-    pipeline = Pipeline([
-        ('tfidf', TfidfVectorizer(
-            # We parse the string from config back into a real tuple
-            ngram_range=ast.literal_eval(config.ngram_range),
-            max_features=config.max_features
-        )),
-        ('logreg', LogisticRegression(
-            C=config.C,
-            solver=config.solver
-        ))
-    ])
+    pipeline = Pipeline(
+        [
+            (
+                "tfidf",
+                TfidfVectorizer(
+                    # We parse the string from config back into a real tuple
+                    ngram_range=ast.literal_eval(config.ngram_range),
+                    max_features=config.max_features,
+                ),
+            ),
+            ("logreg", LogisticRegression(C=config.C, solver=config.solver)),
+        ]
+    )
     pipeline.fit(X_train, y_train)
     print("Training complete.")
 
@@ -96,7 +109,7 @@ def train():
         name=model_artifact_name,
         type="model",
         description="A TF-IDF and Logistic Regression pipeline for toxic comment classification.",
-        metadata=dict(config)  # Associate hyperparameters with the model artifact
+        metadata=dict(config),  # Associate hyperparameters with the model artifact
     )
     artifact.add_file(model_filename)
     wandb.log_artifact(artifact)
