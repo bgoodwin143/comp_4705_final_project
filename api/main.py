@@ -62,7 +62,7 @@ DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME", "prediction_logs")
 try:
     # Boto3 will automatically use the IAM role credentials
     # when this code is running on an EC2 instance with the role attached.
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     table = dynamodb.Table(DYNAMODB_TABLE_NAME)
     # Perform a test operation to confirm connection
     table.load()
