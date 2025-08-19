@@ -4,15 +4,16 @@ from fastapi.testclient import TestClient
 from moto import mock_aws
 import boto3
 import os
-from api.main import app, get_pipeline, get_db_table, DYNAMODB_TABLE_NAME
+from api.main import app, get_pipeline, get_db_table
 
 # Set dummy AWS credentials for Moto
 os.environ["AWS_ACCESS_KEY_ID"] = "testing"
 os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
 os.environ["AWS_SECURITY_TOKEN"] = "testing"
 os.environ["AWS_SESSION_TOKEN"] = "testing"
-os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+os.environ["AWS_DEFAULT_REGION"] = "us-east-2"
 
+DYNAMODB_TABLE_NAME = "prediction_logs"
 
 # --- Mock Objects and Override Functions ---
 class MockPipeline:
