@@ -43,7 +43,7 @@ def load_production_model():
         artifact_dir = artifact.download()
 
         # The actual model file is inside the downloaded directory
-        pipeline_path = os.path.join(artifact_dir, "toxic_comment_pipeline.pkl")
+        pipeline_path = os.path.join(artifact_dir, "toxic-comment-pipeline.pkl")
         pipeline = joblib.load(pipeline_path)
         logger.info("Production model pipeline loaded successfully.")
     except Exception as e:
