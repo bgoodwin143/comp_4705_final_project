@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+wandb
+scikit-learn
+boto3
+joblib
+pandas
+pytest  
+requests 
+moto[dynamodb] 
+httpx
