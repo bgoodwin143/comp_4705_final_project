@@ -1,100 +1,99 @@
 import streamlit as st
-import pandas as pd
 import boto3
+import pandas as pd
 from botocore.exceptions import ClientError
-import plotly.express as px
-import os
+from boto3.dynamodb.conditions import Key
 
-# --- AWS and DynamoDB Configuration ---
-# For local testing, you might need to configure credentials.
-# When deployed on EC2 with an IAM role, Boto3 handles this automatically.
-DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME", "prediction_logs")
-
-# --- Streamlit Page Configuration ---
-st.set_page_config(page_title="Model Monitoring Dashboard", layout="wide")
+st.set_page_config(layout="wide")
 st.title("Live Model Monitoring Dashboard")
-st.write(
-    "This dashboard connects to a DynamoDB table to visualize live prediction data."
-)
 
 
-# --- Data Loading Function ---
-@st.cache_data(ttl=60)  # Cache data for 60 seconds
-def load_data_from_dynamodb():
-    """
-    Scans the entire DynamoDB table and returns the data as a Pandas DataFrame.
-    """
+# --- DynamoDB Connection ---
+@st.cache_resource(ttl=60)  # Cache the resource for 60 seconds
+def get_dynamodb_table():
+    """Connects to DynamoDB and returns the table resource."""
     try:
         dynamodb = boto3.resource("dynamodb", region_name="us-east-2")
-        table = dynamodb.Table(DYNAMODB_TABLE_NAME)
-        # Scan is okay for smaller tables, but for very large tables,
-        # you'd want a more efficient query strategy.
-        response = table.scan()
-        data = response.get("Items", [])
-
-        # Handle paginated results if the table is large
-        while "LastEvaluatedKey" in response:
-            response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
-            data.extend(response.get("Items", []))
-
-        if not data:
-            return pd.DataFrame()  # Return empty DataFrame if no data
-
-        df = pd.DataFrame(data)
-        # Convert timestamp to datetime objects for plotting
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        return df
-
+        table = dynamodb.Table("prediction_logs")
+        table.load()  # This will raise an error if the table doesn't exist
+        return table
     except ClientError as e:
-        st.error(f"Error connecting to DynamoDB: {e.response['Error']['Message']}")
-        return pd.DataFrame()  # Return empty DataFrame on error
-    except Exception as e:
-        st.error(f"An unexpected error occurred: {e}")
+        st.error(f"Failed to connect to DynamoDB: {e.response['Error']['Message']}")
+        return None
+
+
+@st.cache_data(ttl=30)  # Cache the data for 30 seconds
+def load_data(_table):
+    """Scans the entire DynamoDB table and returns data as a DataFrame."""
+    if _table is None:
+        return pd.DataFrame()
+    try:
+        response = _table.scan()
+        data = response.get("Items", [])
+        # Handle pagination for large tables
+        while "LastEvaluatedKey" in response:
+            response = _table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+            data.extend(response.get("Items", []))
+        return pd.DataFrame(data)
+    except ClientError as e:
+        st.error(f"Failed to scan DynamoDB table: {e.response['Error']['Message']}")
         return pd.DataFrame()
 
 
-# --- Main Dashboard Logic ---
-df = load_data_from_dynamodb()
+table = get_dynamodb_table()
+log_df = load_data(table)
 
-if df.empty:
-    st.warning(
-        "No data found in the prediction_logs table. Please send predictions from the API."
-    )
+
+if log_df.empty:
+    st.warning("No prediction log data found in DynamoDB.")
 else:
-    st.success(f"Successfully loaded {len(df)} records from DynamoDB.")
-    st.dataframe(df.head())
+    # --- Data Cleaning and Preparation ---
+    log_df["timestamp"] = pd.to_datetime(log_df["timestamp"])
+    log_df["prediction_latency_ms"] = pd.to_numeric(
+        log_df["prediction_latency_ms"], errors="coerce"
+    )
+    log_df = log_df.sort_values(by="timestamp", ascending=False)
+
+    # --- Top Level Metrics ---
+    st.header("Overall Performance")
+    total_predictions = len(log_df)
+    avg_latency = log_df["prediction_latency_ms"].mean()
+
+    col1, col2 = st.columns(2)
+    col1.metric("Total Predictions Made", f"{total_predictions}")
+    col2.metric("Average Prediction Latency (ms)", f"{avg_latency:.2f}")
 
     st.divider()
 
-    # --- Visualizations ---
+    # --- Live Accuracy & Latency Visualizations ---
     col1, col2 = st.columns(2)
 
     with col1:
-        st.header("Prediction Distribution (Target Drift)")
-        # Create a bar chart of the 'classification' counts
-        fig_dist = px.bar(
-            df["classification"].value_counts().reset_index(),
-            x="classification",
-            y="count",
-            title="Distribution of Predictions",
-        )
-        st.plotly_chart(fig_dist, use_container_width=True)
+        st.header("Live Model Accuracy (Based on User Feedback)")
+        feedback_df = log_df[log_df["user_feedback"] != "N/A"].copy()
+        total_feedback = len(feedback_df)
+        if total_feedback > 0:
+            correct_feedback = (feedback_df["user_feedback"] == "correct").sum()
+            live_accuracy = (correct_feedback / total_feedback) * 100
+            st.metric(
+                "Live Accuracy",
+                f"{live_accuracy:.2f}%",
+                f"Based on {total_feedback} feedback entries",
+            )
+        else:
+            st.info("No user feedback has been submitted yet.")
 
     with col2:
-        st.header("Predictions Over Time")
-        # Resample data to count predictions per hour
-        predictions_over_time = (
-            df.set_index("timestamp").resample("h").size().reset_index(name="count")
-        )
-        fig_time = px.line(
-            predictions_over_time,
-            x="timestamp",
-            y="count",
-            title="Prediction Volume (per hour)",
-        )
-        st.plotly_chart(fig_time, use_container_width=True)
+        st.header("Prediction Latency Over Time")
+        latency_chart_df = log_df[["timestamp", "prediction_latency_ms"]].copy()
+        latency_chart_df = latency_chart_df.set_index("timestamp")
+        st.line_chart(latency_chart_df)
 
-    st.divider()
+    # --- Target Drift ---
+    st.header("Target Drift: Distribution of Predictions")
+    prediction_dist = log_df["classification"].value_counts()
+    st.bar_chart(prediction_dist)
+
+    # --- Recent Predictions Log ---
     st.header("Recent Prediction Logs")
-    # Show the 10 most recent predictions
-    st.dataframe(df.sort_values(by="timestamp", ascending=False).head(10))
+    st.dataframe(log_df.head(10))

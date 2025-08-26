@@ -2,53 +2,75 @@ import streamlit as st
 import requests
 import os
 
-# It's good practice to get the API URL from an environment variable
-# We'll set a default for local testing.
+# Get the API URL from the environment variable, with a default for local testing
 API_URL = os.getenv("API_URL", "http://localhost:8000")
-PREDICT_ENDPOINT = f"{API_URL}/predict"
-
-st.set_page_config(page_title="Toxic Comment Classifier", layout="centered")
 
 st.title("Toxic Comment Classifier")
-st.write(
-    "Enter a comment below to classify it as toxic or not toxic. "
-    "This interface sends a request to a live FastAPI backend."
-)
+st.markdown("Enter a comment below to classify it as toxic or not toxic.")
 
-# --- User Input Area ---
-with st.form("prediction_form"):
-    text_input = st.text_area(
-        "Enter your comment here:",
-        "This is an example of a perfectly nice and respectful comment.",
-        height=150,
-    )
-    submit_button = st.form_submit_button("Classify Comment")
+# Initialize session state for storing prediction results
+if "prediction_id" not in st.session_state:
+    st.session_state.prediction_id = None
+    st.session_state.classification = None
+    st.session_state.text_input = ""
+    st.session_state.feedback_submitted = False
 
-# --- Prediction Logic ---
-if submit_button and text_input:
-    with st.spinner("Classifying..."):
+
+def submit_feedback(pred_id, feedback):
+    """Sends user feedback to the backend API."""
+    try:
+        response = requests.post(
+            f"{API_URL}/feedback",
+            json={"prediction_id": pred_id, "feedback": feedback},
+        )
+        response.raise_for_status()  # Raise an exception for bad status codes
+        st.success("Thank you for your feedback!")
+        st.session_state.feedback_submitted = True
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error submitting feedback: {e}")
+
+
+# Text input from user
+comment_text = st.text_area("Enter your comment:", height=150)
+
+if st.button("Classify Comment"):
+    if comment_text:
         try:
-            # The request body must match the Pydantic model in the API
-            payload = {"text": text_input}
+            response = requests.post(f"{API_URL}/predict", json={"text": comment_text})
+            response.raise_for_status()
+            result = response.json()
 
-            # Send the request to the FastAPI backend
-            response = requests.post(PREDICT_ENDPOINT, json=payload)
-
-            if response.status_code == 200:
-                # Get the JSON response
-                prediction_data = response.json()
-                classification = prediction_data.get("classification")
-                prediction_id = prediction_data.get("prediction_id")
-
-                # Display the result
-                st.success(f"Classification Result: **{classification.upper()}**")
-                st.info(
-                    f"Prediction ID: `{prediction_id}` (This has been logged for monitoring)"
-                )
-            else:
-                # Handle API errors
-                st.error(f"Error: API returned status code {response.status_code}")
-                st.json(response.json())
+            # Store results in session state to persist across reruns
+            st.session_state.prediction_id = result["prediction_id"]
+            st.session_state.classification = result["classification"]
+            st.session_state.text_input = comment_text
+            st.session_state.feedback_submitted = False
 
         except requests.exceptions.RequestException as e:
-            st.error(f"Error: Could not connect to the API. Details: {e}")
+            st.error(f"Error calling API: {e}")
+            st.session_state.prediction_id = None
+    else:
+        st.warning("Please enter a comment to classify.")
+
+# Display results and feedback buttons only after a prediction is made
+if st.session_state.prediction_id:
+    st.divider()
+    st.markdown(f"**Original Comment:** *'{st.session_state.text_input}'*")
+
+    if st.session_state.classification == "toxic":
+        st.error(f"**Classification: {st.session_state.classification.upper()}**")
+    else:
+        st.success(f"**Classification: {st.session_state.classification.upper()}**")
+
+    st.markdown(f"Prediction ID: `{st.session_state.prediction_id}`")
+
+    # Show feedback buttons only if feedback has not been submitted for this prediction
+    if not st.session_state.feedback_submitted:
+        st.write("Was this classification correct?")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👍 Correct"):
+                submit_feedback(st.session_state.prediction_id, "correct")
+        with col2:
+            if st.button("👎 Incorrect"):
+                submit_feedback(st.session_state.prediction_id, "incorrect")

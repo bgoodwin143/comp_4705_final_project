@@ -1,4 +1,3 @@
-# api/main.py
 import os
 import uuid
 import joblib
@@ -10,17 +9,17 @@ import boto3
 from botocore.exceptions import ClientError
 import logging
 from contextlib import asynccontextmanager
+import time  # NEW: Import the time module
 
 # --- Application Setup ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- App State ---
-# Use a dictionary to hold app state instead of global variables
 app_state = {"pipeline": None, "dynamodb_table": None}
 
 
-# --- Lifespan Events (The new way to do startup/shutdown) ---
+# --- Lifespan Events ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # This block runs on startup
@@ -37,10 +36,6 @@ async def lifespan(app: FastAPI):
             type="model",
         )
         artifact_dir = artifact.download()
-        # --- START OF TEMPORARY CHANGE ---
-        logger.info(f"DEBUG: Artifact downloaded to ==> {artifact_dir}")
-        logger.info(f"DEBUG: Contents of that directory ==> {os.listdir(artifact_dir)}")
-        # --- END OF TEMPORARY CHANGE ---
         pipeline_path = os.path.join(artifact_dir, "toxic-comment-pipeline.pkl")
         app_state["pipeline"] = joblib.load(pipeline_path)
         logger.info("Production model pipeline loaded successfully.")
@@ -61,15 +56,13 @@ async def lifespan(app: FastAPI):
     except ClientError as e:
         logger.error(f"Failed to connect to DynamoDB: {e.response['Error']['Message']}")
 
-    yield  # The application runs here
+    yield
 
     # This block runs on shutdown
     logger.info("--- Application Shutdown ---")
-    app_state["pipeline"] = None
-    app_state["dynamodb_table"] = None
 
 
-# Initialize FastAPI app with the lifespan manager
+# Initialize FastAPI app
 app = FastAPI(
     title="Toxic Comment Classification API", version="1.0.0", lifespan=lifespan
 )
@@ -98,6 +91,12 @@ class PredictionResponse(BaseModel):
     classification: str
 
 
+# Pydantic model for the feedback request body
+class FeedbackRequest(BaseModel):
+    prediction_id: str
+    feedback: str  # "correct" or "incorrect"
+
+
 # --- API Endpoints ---
 @app.get("/health", summary="Health Check")
 def health_check(pipeline=Depends(get_pipeline), table=Depends(get_db_table)):
@@ -110,14 +109,20 @@ def predict(
     pipeline=Depends(get_pipeline),
     table=Depends(get_db_table),
 ):
+    start_time = time.time()  # NEW: Start timer
+
     prediction_id = str(uuid.uuid4())
     prediction_array = pipeline.predict([request.text])
     classification_result = "toxic" if prediction_array[0] == 1 else "not_toxic"
+
+    end_time = time.time()  # NEW: End timer
+    latency_ms = round((end_time - start_time) * 1000, 2)  # NEW: Calculate latency
 
     log_item = {
         "prediction_id": prediction_id,
         "text_input": request.text,
         "classification": classification_result,
+        "prediction_latency_ms": latency_ms,  # NEW: Add latency to log
         "model_artifact_used": "bensharn-university-of-denver/Toxic-Comment-Classification-Final/toxic-comment-pipeline:production",
         "timestamp": pd.Timestamp.now().isoformat(),
         "user_feedback": "N/A",
@@ -132,3 +137,24 @@ def predict(
     return PredictionResponse(
         prediction_id=prediction_id, classification=classification_result
     )
+
+
+# Endpoint to receive user feedback
+@app.post("/feedback", summary="Submit feedback for a prediction")
+def submit_feedback(
+    request: FeedbackRequest,
+    table=Depends(get_db_table),
+):
+    try:
+        table.update_item(
+            Key={"prediction_id": request.prediction_id},
+            UpdateExpression="SET user_feedback = :val",
+            ExpressionAttributeValues={":val": request.feedback},
+        )
+        logger.info(
+            f"Updated feedback for {request.prediction_id} to '{request.feedback}'"
+        )
+        return {"status": "success", "message": "Feedback submitted."}
+    except ClientError as e:
+        logger.error(f"DynamoDB update_item failed: {e.response['Error']['Message']}")
+        raise HTTPException(status_code=500, detail="Failed to submit feedback.")
