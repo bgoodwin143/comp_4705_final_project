@@ -15,6 +15,7 @@ os.environ["AWS_DEFAULT_REGION"] = "us-east-2"
 
 DYNAMODB_TABLE_NAME = "prediction_logs"
 
+
 # --- Mock Objects and Override Functions ---
 class MockPipeline:
     def predict(self, texts):
