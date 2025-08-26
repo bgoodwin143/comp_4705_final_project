@@ -27,6 +27,7 @@ This phase covers setting up the environment, versioning the dataset, and runnin
     ```bash
     git clone https://github.com/[your-github-username]/comp_4705_final_project.git
     cd comp_4705_final_project
+    git checkout dev
     ```
 2.  **Create and Activate a Virtual Environment**:
     ```bash
@@ -79,6 +80,7 @@ This section provides a complete guide for deploying the entire application stac
 
 2.  **Create IAM Role**:
     *   In the IAM service, create a new role for an **AWS service (EC2)**.
+    *   Select EC2!! Not dynamoDB
     *   Attach the `AmazonDynamoDBFullAccess` permission policy.
     *   Name the role **`EC2-DynamoDB-Access-Role`**.
 
@@ -99,10 +101,21 @@ This section provides a complete guide for deploying the entire application stac
 
 1.  **Launch the Backend Server**:
     *   Launch a `t2.micro` EC2 instance with Ubuntu.
+    *   Call it backend
+    *   create or download an exisitng key pair 
     *   During launch, assign the **`backend-sg`** security group.
     *   In "Advanced details," attach the **`EC2-DynamoDB-Access-Role`** IAM instance profile.
     *   SSH into the instance, install Git and Docker, and configure the Docker group.
-    *   Clone the repository: `git clone -b dev https://github.com/[your-github-username]/comp_4705_final_project.git`
+    *   Somewhat optional: change the permissions on .pem i.e., chmod   400 on the filename 
+    *   SSH into the instance: i.e., ssh -i "key.pem" ubuntu@ec2ip
+    *   Run: sudo apt-get update -y
+    *   Run: sudo apt-get install git -y
+    *   Run: sudo apt-get install docker.io -y
+    *   Run: sudo usermod -aG docker ${USER}
+    *   Then log out of the machine and log back in
+    *   Clone the repository: `https://github.com/bgoodwin143/comp_4705_final_project.git`
+    *   cd comp_4705_final_project
+    *   Checkout dev branch
     *   Build the backend image: `docker build -t fastapi-backend -f api/Dockerfile .`
     *   Run the backend container, injecting your W&B API Key as a secret:
         ```bash
@@ -114,11 +127,21 @@ This section provides a complete guide for deploying the entire application stac
 
 2.  **Launch the Frontend Server**:
     *   Launch a second `t2.micro` EC2 instance with Ubuntu.
+    *   Call it frontend
     *   Assign the **`frontend-sg`** security group.
     *   Attach the **`EC2-DynamoDB-Access-Role`** IAM instance profile.
     *   SSH in, install Git and Docker, and configure the Docker group.
     *   Get the **Private IP Address** of your backend server from the EC2 dashboard.
-    *   Clone the repository.
+        *   Somewhat optional: change the permissions on .pem i.e., chmod   400 on the filename 
+    *   SSH into the instance: i.e., ssh -i "key.pem" ubuntu@ec2ip
+    *   Run: sudo apt-get update -y
+    *   Run: sudo apt-get install git -y
+    *   Run: sudo apt-get install docker.io -y
+    *   Run: sudo usermod -aG docker ${USER}
+    *   Then log out of the machine and log back in
+    *   Clone the repository: `https://github.com/bgoodwin143/comp_4705_final_project.git`
+    *   cd comp_4705_final_project
+    *   Checkout dev branch
     *   Build the frontend images:
         ```bash
         docker build -t streamlit-frontend -f frontend/Dockerfile .
@@ -135,9 +158,9 @@ This section provides a complete guide for deploying the entire application stac
         docker run -d --name monitoring_container -p 8502:8502 streamlit-monitoring
         ```
 
-### Step 4: Access the Live Application
-*   **User Interface**: `http://3.14.149.228/:8501`
-*   **Monitoring Dashboard**: `http://3.14.149.228:8502/`
+### Step 4: Access the Live Application (I used a pesonal EC2 account and left my tests live)
+*   **User Interface**: `http://3.18.221.12:8501//:8501/`
+*   **Monitoring Dashboard**: `http://3.18.221.12:8502/`
 
 ## Project Links
 *   **W&B Project Dashboard**: (https://wandb.ai/bensharn-university-of-denver/Toxic-Comment-Classification-Final?nw=nwuserbensharn)
