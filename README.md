@@ -16,7 +16,7 @@ The final architecture is a multi-component cloud application designed for scala
 
 *   **Monitoring Dashboard (Streamlit on EC2)**: A second containerized Streamlit application, also running on the frontend EC2 instance, serves as the monitoring hub. It connects directly to the DynamoDB table to visualize live production data, including the distribution of predictions (target drift) and prediction volume over time.
 
-*   **CI/CD Pipeline (GitHub Actions)**: An automated workflow validates all code changes. On every pull request to the `main` branch, it runs a linter (`ruff`) and the full `pytest` test suite, ensuring code quality and preventing regressions.
+*   **CI/CD Pipeline (GitHub Actions)**: An automated workflow validates all code changes. On every pull request to the `main` branch, it runs a linter (`flake8`) and the full `pytest` test suite, ensuring code quality and preventing regressions.
 
 ## Phase 1: Experimentation with Weights & Biases
 
@@ -159,7 +159,7 @@ This section provides a complete guide for deploying the entire application stac
         ```
 
 ### Step 4: Access the Live Application (I used a pesonal EC2 account and left my tests live)
-*   **User Interface**: `http://3.18.221.12:8501//:8501/`
+*   **User Interface**: `http://3.18.221.12:8501//:8501`
 *   **Monitoring Dashboard**: `http://3.18.221.12:8502/`
 
 ## Project Links
