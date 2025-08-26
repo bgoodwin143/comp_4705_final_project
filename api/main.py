@@ -9,7 +9,8 @@ import boto3
 from botocore.exceptions import ClientError
 import logging
 from contextlib import asynccontextmanager
-import time  # NEW: Import the time module
+import time
+from decimal import Decimal
 
 # --- Application Setup ---
 logging.basicConfig(level=logging.INFO)
@@ -122,7 +123,7 @@ def predict(
         "prediction_id": prediction_id,
         "text_input": request.text,
         "classification": classification_result,
-        "prediction_latency_ms": latency_ms,  # NEW: Add latency to log
+        "prediction_latency_ms": Decimal(str(latency_ms)),
         "model_artifact_used": "bensharn-university-of-denver/Toxic-Comment-Classification-Final/toxic-comment-pipeline:production",
         "timestamp": pd.Timestamp.now().isoformat(),
         "user_feedback": "N/A",
