@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
         logger.info(f"DEBUG: Artifact downloaded to ==> {artifact_dir}")
         logger.info(f"DEBUG: Contents of that directory ==> {os.listdir(artifact_dir)}")
         # --- END OF TEMPORARY CHANGE ---
-        pipeline_path = os.path.join(artifact_dir, "toxic_comment_pipeline.pkl")
+        pipeline_path = os.path.join(artifact_dir, "toxic-comment-pipeline.pkl")
         app_state["pipeline"] = joblib.load(pipeline_path)
         logger.info("Production model pipeline loaded successfully.")
     except Exception as e:
